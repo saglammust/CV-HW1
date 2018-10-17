@@ -107,6 +107,7 @@ class window(QMainWindow):
         imgQ.move(594,60)
         self.show()
         imgQ.show()
+        #this is defective solution to the problem of opencv images not transforming into qimages
 
         if os.path.exists("./__save_temp__.png"):
             os.remove("./__save_temp__.png")
