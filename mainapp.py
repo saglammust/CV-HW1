@@ -10,9 +10,9 @@ import sys
 import os
 
 class window(QMainWindow):
-    img_input = None
+    img_input = None    #changed from path
     img_target = None
-    inputLoad = False
+    inputLoad = False   #control booleans
     targetLoad = False
     def __init__(self):
         super(window, self).__init__()
@@ -68,7 +68,7 @@ class window(QMainWindow):
         path = QFileDialog.getOpenFileName(None,'Open File', '', "Image files(*.png)")
         self.img_input = cv2.imread(path[0])
         self.inputLoad = True
-        
+        #opencv image to qimage
         image = QImage(self.img_input, self.img_input.shape[1], self.img_input.shape[0], \
                 self.img_input.shape[1] * 3, QImage.Format_RGB888).rgbSwapped()
         pix = QPixmap(image)
@@ -84,7 +84,7 @@ class window(QMainWindow):
         path = QFileDialog.getOpenFileName(None,'Open File', '', "Image files(*.png)")
         self.img_target = cv2.imread(path[0])
         self.targetLoad = True
-        
+        #opencv image to qimage
         image = QImage(self.img_target, self.img_target.shape[1], self.img_target.shape[0], \
                 self.img_target.shape[1] * 3, QImage.Format_RGB888).rgbSwapped()
         pix = QPixmap(image)
@@ -113,7 +113,7 @@ class window(QMainWindow):
 
         LUT = eq.generate_LUT(cdf_In, cdf_To)
         img_out = eq.remapper(self.img_input,LUT)
-
+        #opencv image to qimage
         imgOut = QLabel(self)
         image = QImage(img_out, img_out.shape[1], img_out.shape[0], img_out.shape[1] * 3, QImage.Format_RGB888).rgbSwapped()
         pix = QPixmap(image)
