@@ -1,5 +1,5 @@
 from PyQt5.uic.properties import QtGui
-from PyQt5.QtWidgets import (QAction, QWidget, QLabel, QMainWindow, QPushButton, QApplication, QFileDialog)
+from PyQt5.QtWidgets import (QAction, QWidget, QLabel, QMainWindow, QPushButton, QApplication, QFileDialog, QMessageBox)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import equalizer as eq
@@ -10,11 +10,13 @@ import sys
 import os
 
 class window(QMainWindow):
-    pathIn = None
-    pathTo = None
+    img_input = None
+    img_target = None
+    inputLoad = False
+    targetLoad = False
     def __init__(self):
         super(window, self).__init__()
-        self.setGeometry(80,20,1080,720)
+        self.setGeometry(80,20,1280,720)
         self.setWindowTitle('Histogram Equalizer')
         self.setWindowIcon(QIcon('graph.ico'))
 
@@ -63,32 +65,45 @@ class window(QMainWindow):
 
     def choose_input_image(self):
         imIn = QLabel(self)
-        image = QFileDialog.getOpenFileName(None,'Open File', '', "Image files(*.png)")
-        self.pathIn = image[0]
-        pixmapI = QPixmap(self.pathIn)
-        imIn.setPixmap(pixmapI)
-        imIn.resize(pixmapI.width(),pixmapI.height())
-        imIn.move(20,60)
+        path = QFileDialog.getOpenFileName(None,'Open File', '', "Image files(*.png)")
+        self.img_input = cv2.imread(path[0])
+        self.inputLoad = True
+        
+        image = QImage(self.img_input, self.img_input.shape[1], self.img_input.shape[0], \
+                self.img_input.shape[1] * 3, QImage.Format_RGB888).rgbSwapped()
+        pix = QPixmap(image)
+        pix_scaled = pix.scaled(240,480, Qt.KeepAspectRatio)
+        imIn.setPixmap(pix_scaled)
+        imIn.resize(pix_scaled.width(),pix_scaled.height())
+        imIn.move(10,60)
         self.show()
         imIn.show()
     
     def choose_target_image(self):
         imTo = QLabel(self)
-        image = QFileDialog.getOpenFileName(None,'Open File', '', "Image files(*.png)")
-        self.pathTo = image[0]
-        pixmapT = QPixmap(self.pathTo)
-        imTo.setPixmap(pixmapT)
-        imTo.resize(pixmapT.width(),pixmapT.height())
-        imTo.move(307,60)
+        path = QFileDialog.getOpenFileName(None,'Open File', '', "Image files(*.png)")
+        self.img_target = cv2.imread(path[0])
+        self.targetLoad = True
+        
+        image = QImage(self.img_target, self.img_target.shape[1], self.img_target.shape[0], \
+                self.img_target.shape[1] * 3, QImage.Format_RGB888).rgbSwapped()
+        pix = QPixmap(image)
+        pix_scaled = pix.scaled(240,480, Qt.KeepAspectRatio)
+        imTo.setPixmap(pix_scaled)
+        imTo.resize(pix_scaled.width(),pix_scaled.height())
+        imTo.move(480,60)
         self.show()
         imTo.show()
-
+        
     def equalize_hist(self):
-        imIn = cv2.imread(self.pathIn)
-        imTo = cv2.imread(self.pathTo)
+        if not self.inputLoad or not self.targetLoad:
+            mistake = QMessageBox.warning(self, 'Crucial Mistake', 'You have not loaded either of the images!\n'
+                'Please load the images and try again!', QMessageBox.Cancel)
+            if mistake == QMessageBox.Cancel:
+                return
 
-        hist_In = eq.create_hist(imIn)
-        hist_To = eq.create_hist(imTo)
+        hist_In = eq.create_hist(self.img_input)
+        hist_To = eq.create_hist(self.img_target)
 
         pdf_In = eq.pdf_create(hist_In)
         pdf_To = eq.pdf_create(hist_To)
@@ -97,26 +112,19 @@ class window(QMainWindow):
         cdf_To = eq.cdf_create(pdf_To)
 
         LUT = eq.generate_LUT(cdf_In, cdf_To)
-        image = eq.remapper(imIn,LUT)
-        cv2.imwrite("__save_temp__.png", image)
+        img_out = eq.remapper(self.img_input,LUT)
 
-        imgQ = QLabel(self)
-        pixmapQ = QPixmap("./__save_temp__.png")
-        imgQ.setPixmap(pixmapQ)
-        imgQ.resize(pixmapQ.width(),pixmapQ.height())
-        imgQ.move(594,60)
+        imgOut = QLabel(self)
+        image = QImage(img_out, img_out.shape[1], img_out.shape[0], img_out.shape[1] * 3, QImage.Format_RGB888).rgbSwapped()
+        pix = QPixmap(image)
+        pix_scaled = pix.scaled(240,480, Qt.KeepAspectRatio)
+        imgOut.setPixmap(pix_scaled)
+        imgOut.resize(pix_scaled.width(),pix_scaled.height())
+        imgOut.move(950,60)
         self.show()
-        imgQ.show()
-        #this is defective solution to the problem of opencv images not transforming into qimages
+        imgOut.show()
 
-        if os.path.exists("./__save_temp__.png"):
-            os.remove("./__save_temp__.png")
-        else:
-            pass
-
-def run():
+if __name__ == '__main__':
     app = QApplication(sys.argv)
-    gui_ = window()
+    ex = window()
     sys.exit(app.exec_())
-
-run()
