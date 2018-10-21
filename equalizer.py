@@ -3,13 +3,6 @@ import numpy as np
 import cv2
 import sys
 
-if len(sys.argv) == 3:
-    imIn = cv2.imread(str(sys.argv[1]))
-    imTo = cv2.imread(str(sys.argv[2]))
-else:
-    print("usage: python try0v1.py 'input_image' 'sample_image'\n"
-    "Please enter the pathways of the images correctly")
-
 def create_hist(I):
     R,C,B = I.shape
     hist = np.zeros([256,1,B])
@@ -51,33 +44,3 @@ def remapper(I,LUT):
             for c in range(C):
                 K[r,c,b] = LUT[I[r,c,b],0,b]
     return K                        #return the new image
-
-
-hist_In = create_hist(imIn)
-hist_To = create_hist(imTo)
-
-pdf_In = pdf_create(hist_In)
-pdf_To = pdf_create(hist_To)
-
-cdf_In = cdf_create(pdf_In)
-cdf_To = cdf_create(pdf_To)
-
-LUT = generate_LUT(cdf_In, cdf_To)
-imFin = remapper(imIn,LUT)
-
-cv2.imshow("Input", imIn)
-cv2.imshow("Target", imTo)
-cv2.imshow("Result", imFin)
-"""
-plt.bar(range(256), hist_In[:,0,0], color = 'b')
-plt.bar(range(256), hist_In[:,0,1], color = 'g')
-plt.bar(range(256), hist_In[:,0,2], color = 'r')
-plt.show()
-plt.bar(range(256), hist_To[:,0,0], color = 'b')
-plt.bar(range(256), hist_To[:,0,1], color = 'g')
-plt.bar(range(256), hist_To[:,0,2], color = 'r')
-"""
-plt.show()
-k = cv2.waitKey(0)
-if k == 27:         # wait for ESC key to exit
-    cv2.destroyAllWindows()
